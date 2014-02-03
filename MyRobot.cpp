@@ -118,7 +118,7 @@ void RobotDemo::TeleopPeriodic() {
 		launcherTimer.Reset();
 		launcherTimer.Start();
 		launcher.SetSpeed(100);
-		if(launcherTimer.HasPeriodPassed(.5)){
+		if(launcherTimer.HasPeriodPassed(.3)){
 			while(!(launchButton.Get())){
 			}
 			launcher.SetSpeed(0);

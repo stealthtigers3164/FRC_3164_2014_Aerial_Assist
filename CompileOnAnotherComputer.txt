@@ -1,3 +1,0 @@
-To compile this code on another computer, take all the files in this folder,
-put them in a folder called IterativeTemplate,
-and open it as a project in Windriver, FRC 2014 version.

@@ -2,9 +2,7 @@
 #include "Timer.h"
 
 /**
- * This is a demo program showing the use of the RobotBase class.
- * The IterativeRobot class is the base of a robot application that will automatically call your
- * Periodic methods for each packet based on the mode.
+ * This program is based off of the IterativeRobot template provided with WPIlb.
  */ 
 class RobotDemo : public IterativeRobot
 {
@@ -106,7 +104,7 @@ void RobotDemo::TeleopPeriodic() {
 	
 	//myRobot.mecanumDrive_polar(magnitude, direction, rotation);
 
-	myRobot.ArcadeDrive ((magnitude/1), (direction/4), true); //apply arcade drive settings.  
+	myRobot.ArcadeDrive ((magnitude/1), (direction/4), true); //apply arcade drive settings. (speeds are throttled)
 
 	//////Roller Code/////////
 	roller.SetSpeed(rollerSpeed*.2); //roller set to 20% speed

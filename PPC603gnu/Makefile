@@ -32,7 +32,7 @@ MODE_DIR := NonDebug
 endif
 OBJ_DIR := .
 WS_ROOT_DIR := C:/WindRiver/workspace
-PRJ_ROOT_DIR := $(WS_ROOT_DIR)/IterativeTemplate
+PRJ_ROOT_DIR := C:/Users/Brendan/Documents/GitHub/FRC_3164_2014_Aerial_Assist
 
 
 
@@ -162,11 +162,11 @@ IterativeTemplate_partialImage/$(MODE_DIR)/% : LIBPATH =
 IterativeTemplate_partialImage/$(MODE_DIR)/% : LIBS = 
 IterativeTemplate_partialImage/$(MODE_DIR)/% : OBJ_DIR := IterativeTemplate_partialImage/$(MODE_DIR)
 
-IterativeTemplate_partialImage/$(MODE_DIR)/Objects/IterativeTemplate/MyRobot.o : $(PRJ_ROOT_DIR)/MyRobot.cpp $(FORCE_FILE_BUILD)
+IterativeTemplate_partialImage/$(MODE_DIR)/Objects/FRC_3164_2014_Aerial_Assist/MyRobot.o : $(PRJ_ROOT_DIR)/MyRobot.cpp $(FORCE_FILE_BUILD)
 	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
 
 
-OBJECTS_IterativeTemplate_partialImage = IterativeTemplate_partialImage/$(MODE_DIR)/Objects/IterativeTemplate/MyRobot.o
+OBJECTS_IterativeTemplate_partialImage = IterativeTemplate_partialImage/$(MODE_DIR)/Objects/FRC_3164_2014_Aerial_Assist/MyRobot.o
 
 IterativeTemplate_partialImage/$(MODE_DIR)/IterativeTemplate_partialImage.o : $(OBJECTS_IterativeTemplate_partialImage)
 	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc -r -nostdlib -Wl,-X  -o "$@" $(OBJECTS_IterativeTemplate_partialImage) $(LIBPATH) $(LIBS) $(ADDED_LIBPATH) $(ADDED_LIBS)  && if [ "$(EXPAND_DBG)" = "1" ]; then plink "$@";fi
@@ -180,7 +180,7 @@ IterativeTemplate_partialImage/$(MODE_DIR)/IterativeTemplate_partialImage_clean 
 
 force : 
 
-DEP_FILES := IterativeTemplate_partialImage/$(MODE_DIR)/Objects/IterativeTemplate/MyRobot.d
+DEP_FILES := IterativeTemplate_partialImage/$(MODE_DIR)/Objects/FRC_3164_2014_Aerial_Assist/MyRobot.d
 -include $(DEP_FILES)
 
 

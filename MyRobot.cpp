@@ -102,9 +102,12 @@ void RobotDemo::TeleopPeriodic() {
 	float rollerSpeed= stick1.GetRawAxis(3);
 	float launcherSpeed= stick1.GetRawAxis(4);
 	
+	
+
+
+	myRobot.ArcadeDrive ((magnitude), direction, true); // drive with arcade style
 	//myRobot.mecanumDrive_polar(magnitude, direction, rotation);
 
-	myRobot.ArcadeDrive ((magnitude/1), (direction/4), false); //apply arcade drive settings. (speeds are throttled)
 
 	//////Roller Code/////////
 	//roller.SetSpeed(rollerSpeed*.2); //roller set to 20% speed

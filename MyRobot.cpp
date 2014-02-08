@@ -1,5 +1,6 @@
 #include "WPILib.h"
 #include "Timer.h"
+#include "RobotDrive.h"
 
 /**
  * This program is based off of the IterativeRobot template provided with WPIlb.
@@ -12,8 +13,13 @@ class RobotDemo : public IterativeRobot
 	Victor roller;
 	Victor launcher;
 	JoystickButton launchButton;
+	JoystickButton compressorStartButton;
+	JoystickButton compressorStopButton;
+	JoystickButton rollerForwardButton;
+	JoystickButton rollerBackwardButton;
 	DigitalInput launcherSwitch;
 	Timer launcherTimer;
+	Compressor compressor;
 
 public:
 	RobotDemo():
@@ -23,13 +29,21 @@ public:
 		stick2(2),
 		roller(5),
 		launcher(6),
-		launchButton(&stick2, 1),
+		launchButton(&stick1, 1),
+		compressorStartButton(&stick1, 11),
+		compressorStopButton(&stick1, 12),
+		rollerForwardButton(&stick1, 5),
+		rollerBackwardButton(&stick1, 3),
 		launcherSwitch(1),
-		launcherTimer()
+		launcherTimer(),
+		compressor(1,2)
 		
 	{
 		myRobot.SetExpiration(0.1);
 		this->SetPeriod(0); 	//Set update period to sync with robot control packets (20ms nominal)
+	
+		myRobot.SetInvertedMotor(RobotDrive::kFrontRightMotor, true);
+		myRobot.SetInvertedMotor(RobotDrive::kRearRightMotor, true);
 	}
 	
 /**
@@ -66,6 +80,7 @@ void RobotDemo::DisabledPeriodic() {
  * the robot enters autonomous mode.
  */
 void RobotDemo::AutonomousInit() {
+	compressor.Start();
 }
 
 /**
@@ -84,8 +99,8 @@ void RobotDemo::AutonomousPeriodic() {
  * the robot enters teleop mode.
  */
 void RobotDemo::TeleopInit() {
+	compressor.Start();
 }
-
 /**
  * Periodic code for teleop mode should go here.
  *
@@ -102,12 +117,29 @@ void RobotDemo::TeleopPeriodic() {
 	float rollerSpeed= stick1.GetRawAxis(3);
 	float launcherSpeed= stick1.GetRawAxis(4);
 	
+	if(compressorStartButton.Get()){
+		compressor.Start();
+	}
+	
+	if(compressorStopButton.Get()){
+		compressor.Stop();
+	}
+	
+	if(rollerForwardButton.Get()){
+		roller.SetSpeed(.5); //speeds max out at 1.
+	}else if(rollerBackwardButton.Get()){
+		roller.SetSpeed(-.5);
+	}else{
+		roller.SetSpeed(0);
+	}
+
+
+	myRobot.ArcadeDrive ((magnitude), direction, true); // drive with arcade style
 	//myRobot.mecanumDrive_polar(magnitude, direction, rotation);
 
-	myRobot.ArcadeDrive ((magnitude/1), (direction/4), true); //apply arcade drive settings. (speeds are throttled)
 
 	//////Roller Code/////////
-	roller.SetSpeed(rollerSpeed*.2); //roller set to 20% speed
+	//roller.SetSpeed(rollerSpeed*.2); //roller set to 20% speed
 	//////////////////////////
 	
 	
@@ -135,6 +167,7 @@ void RobotDemo::TeleopPeriodic() {
  * the robot enters test mode.
  */
 void RobotDemo::TestInit() {
+	compressor.Start();
 }
 
 /**
@@ -144,6 +177,13 @@ void RobotDemo::TestInit() {
  * rate while the robot is in test mode.
  */
 void RobotDemo::TestPeriodic() {
+	if(compressorStartButton.Get()){
+		compressor.Start();
+	}
+	
+	if(compressorStopButton.Get()){
+		compressor.Stop();
+	}
 }
 
 };

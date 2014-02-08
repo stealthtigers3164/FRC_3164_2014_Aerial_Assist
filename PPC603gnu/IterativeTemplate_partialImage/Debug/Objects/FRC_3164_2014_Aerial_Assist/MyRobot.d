@@ -385,6 +385,7 @@
   C:/WindRiver/vxworks-6.3/target/h/WPILib/Vision/ColorImage.h \
   C:/WindRiver/vxworks-6.3/target/h/WPILib/WPIErrors.h \
   C:/WindRiver/vxworks-6.3/target/h/WPILib/Timer.h \
+  C:/WindRiver/vxworks-6.3/target/h/WPILib/DriverStation.h \
   C:/WindRiver/vxworks-6.3/target/h/WPILib/RobotDrive.h
 
 C:/WindRiver/vxworks-6.3/target/h/WPILib/WPILib.h:
@@ -1154,5 +1155,7 @@ C:/WindRiver/vxworks-6.3/target/h/WPILib/Vision/ColorImage.h:
 C:/WindRiver/vxworks-6.3/target/h/WPILib/WPIErrors.h:
 
 C:/WindRiver/vxworks-6.3/target/h/WPILib/Timer.h:
+
+C:/WindRiver/vxworks-6.3/target/h/WPILib/DriverStation.h:
 
 C:/WindRiver/vxworks-6.3/target/h/WPILib/RobotDrive.h:

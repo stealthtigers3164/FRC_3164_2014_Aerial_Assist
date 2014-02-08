@@ -1,5 +1,6 @@
 #include "WPILib.h"
 #include "Timer.h"
+#include "DriverStation.h"
 #include "RobotDrive.h"
 
 /**
@@ -20,6 +21,7 @@ class RobotDemo : public IterativeRobot
 	DigitalInput launcherSwitch;
 	Timer launcherTimer;
 	Compressor compressor;
+	
 
 public:
 	RobotDemo():
@@ -37,6 +39,7 @@ public:
 		launcherSwitch(1),
 		launcherTimer(),
 		compressor(1,2)
+	
 		
 	{
 		myRobot.SetExpiration(0.1);
@@ -53,6 +56,8 @@ public:
  * be called when the robot is first powered on.  It will be called exactly 1 time.
  */
 void RobotDemo::RobotInit() {
+	SmartDashboard::PutBoolean("Compressor Enabled:",compressor.Enabled());
+	SmartDashboard::PutBoolean("Compressor Active:",compressor.GetPressureSwitchValue());
 }
 
 /**

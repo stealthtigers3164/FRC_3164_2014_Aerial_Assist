@@ -18,9 +18,13 @@ class RobotDemo : public IterativeRobot
 	JoystickButton compressorStopButton;
 	JoystickButton rollerForwardButton;
 	JoystickButton rollerBackwardButton;
+	JoystickButton rollerLiftButton;
+	JoystickButton rollerLowerButton;
 	DigitalInput launcherSwitch;
 	Timer launcherTimer;
 	Compressor compressor;
+	Solenoid rollerValve;
+	
 	
 
 public:
@@ -36,9 +40,12 @@ public:
 		compressorStopButton(&stick1, 12),
 		rollerForwardButton(&stick1, 5),
 		rollerBackwardButton(&stick1, 3),
+		rollerLiftButton(&stick1, 4),
+		rollerLowerButton(&stick1, 6),
 		launcherSwitch(1),
 		launcherTimer(),
-		compressor(1,2)
+		compressor(1,2),
+		rollerValve(1,1)
 	
 		
 	{
@@ -128,6 +135,14 @@ void RobotDemo::TeleopPeriodic() {
 	
 	if(compressorStopButton.Get()){
 		compressor.Stop();
+	}
+	
+	if(rollerLiftButton.Get()){
+		rollerValve.Set(true);
+	}
+	
+	if(rollerLowerButton.Get()){
+		rollerValve.Set(false);
 	}
 	
 	if(rollerForwardButton.Get()){

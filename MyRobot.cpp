@@ -148,7 +148,7 @@ public:
 		rollerBackwardButton(&stick1, 3),
 		rollerLiftButton(&stick1, 4),
 		rollerLowerButton(&stick1, 6),
-		launcherSwitch(1),
+		launcherSwitch(2),
 		launcherTimer(),
 		straightenRobotTimer(),
 		compressor(1,7),

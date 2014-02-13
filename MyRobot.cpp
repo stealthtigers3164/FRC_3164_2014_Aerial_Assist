@@ -11,10 +11,12 @@ class RobotDemo : public IterativeRobot
 	RobotDrive myRobot; // robot drive system
 	Joystick stick1;
 	Joystick stick2;
+	Joystick stick3;
 	Victor roller;
 	Victor launcher;
 	JoystickButton launchButton;
 	JoystickButton autoLaunchButton;
+	JoystickButton primeButton;
 	JoystickButton compressorStartButton;
 	JoystickButton compressorStopButton;
 	JoystickButton rollerForwardButton;
@@ -50,7 +52,7 @@ class RobotDemo : public IterativeRobot
 		straightenRobotTimer.Reset();
 		straightenRobotTimer.Start();
 		while(!(straightenRobotTimer.HasPeriodPassed(.3))){ //Find the lowest value.
-			float currentValue = getInches();
+			currentValue = getInches();
 			if(currentValue < lowestValue){
 				lowestValue=currentValue;
 			}
@@ -121,15 +123,25 @@ class RobotDemo : public IterativeRobot
 		return inches;
 	}
 
+	
+	void primeLauncher(){
+		if(!launcherSwitch.Get()){
+			launcherTimer.Reset();
+			launcherTimer.Start();
+			while(!launcherSwitch.Get()){
+				launcher.SetSpeed(100);
+			}
+		}
+	}
+	
 	void launch(){
+		primeLauncher();
 		launcherTimer.Reset();
 		launcherTimer.Start();
 		launcher.SetSpeed(100);
-		if(launcherTimer.HasPeriodPassed(.3)){
-			while(!(launcherSwitch.Get())){
-			}
-			launcher.SetSpeed(0);
+		while(!launcherTimer.HasPeriodPassed(.3)){
 		}
+		launcher.SetSpeed(0);
 	}
 
 public:
@@ -138,16 +150,18 @@ public:
 		myRobot(2, 1, 4, 3),	// frontLeft, rearLeft, frontRight, rearRight
 		stick1(1),
 		stick2(2),
+		stick3(3),
 		roller(5),
 		launcher(6),
 		launchButton(&stick1, 1),
-		autoLaunchButton(&stick1, 2),
-		compressorStartButton(&stick1, 11),
-		compressorStopButton(&stick1, 12),
-		rollerForwardButton(&stick1, 5),
-		rollerBackwardButton(&stick1, 3),
-		rollerLiftButton(&stick1, 4),
-		rollerLowerButton(&stick1, 6),
+		autoLaunchButton(&stick1, 3),
+		primeButton(&stick1, 2),
+		compressorStartButton(&stick3, 8),
+		compressorStopButton(&stick3, 7),
+		rollerForwardButton(&stick3, 2),
+		rollerBackwardButton(&stick3, 4),
+		rollerLiftButton(&stick3, 3),
+		rollerLowerButton(&stick3, 1),
 		launcherSwitch(2),
 		launcherTimer(),
 		straightenRobotTimer(),
@@ -260,9 +274,11 @@ void RobotDemo::TeleopPeriodic() {
 	//ports 1 and 2 are left, 3 and 4 are right
 	float magnitude=stick1.GetX();
 	float direction= stick1.GetY();
-	float rollerArmAngle= stick1.GetZ();
-	float rollerSpeed= stick1.GetRawAxis(3);
-	float launcherSpeed= stick1.GetRawAxis(4);
+	//The following commented-out lines are for holonomic drive.
+	//float magnitude=stick1.GetY();
+	//float direction= stick1.GetX();
+	float rotation= stick2.GetZ();
+
 	
 	myRobot.ArcadeDrive ((magnitude), direction, true); // drive with arcade style
 	
@@ -295,9 +311,6 @@ void RobotDemo::TeleopPeriodic() {
 	//myRobot.mecanumDrive_polar(magnitude, direction, rotation);
 
 
-	//////Roller Code/////////
-	//roller.SetSpeed(rollerSpeed*.2); //roller set to 20% speed
-	//////////////////////////
 	
 	
 	//////Manual Launch//////////

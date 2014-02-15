@@ -6,6 +6,8 @@
 /**
  * This program is based off of the IterativeRobot template provided with WPIlb.
  */ 
+
+// ***88 inches is the sweet spot!***
 class RobotDemo : public IterativeRobot
 {
 	RobotDrive myRobot; // robot drive system
@@ -25,10 +27,14 @@ class RobotDemo : public IterativeRobot
 	JoystickButton rollerLowerButton;
 	DigitalInput launcherSwitch;
 	Timer launcherTimer;
+	Timer primerTimer;
 	Timer straightenRobotTimer;
 	Compressor compressor;
 	Solenoid rollerValve;
 	AnalogChannel rangeFinder;
+	bool launching;
+	bool priming;
+	
 	
 	void straightenRobot(){
 		
@@ -125,23 +131,45 @@ class RobotDemo : public IterativeRobot
 
 	
 	void primeLauncher(){
+		cerr << "primeLauncher ";
 		if(!launcherSwitch.Get()){
-			launcherTimer.Reset();
-			launcherTimer.Start();
-			while(!launcherSwitch.Get()){
-				launcher.SetSpeed(100);
-			}
+			priming = true;
+			launcher.SetSpeed(-.5);	
+		}
+	}
+	
+	void primeEnd(){
+
+		if(launcherSwitch.Get() && launching == false && priming == true){
+			cerr << "primeEnd ";
+			priming = false;
+			launcher.SetSpeed(0);
 		}
 	}
 	
 	void launch(){
-		primeLauncher();
+		cerr << "launch ";
+		launching = true;
+		//primeLauncher();
 		launcherTimer.Reset();
 		launcherTimer.Start();
-		launcher.SetSpeed(100);
-		while(!launcherTimer.HasPeriodPassed(.3)){
+		launcher.SetSpeed(-.5);
+		cerr << "launchSpeedSet ";
+
+	}
+	
+	void launchEnd(){
+
+		if(launcherTimer.HasPeriodPassed(1)&& launching== true && priming == false){
+			cerr << "launchEnd ";
+			launching = false;
+			launcher.SetSpeed(0);
 		}
-		launcher.SetSpeed(0);
+	}
+	
+	void checkTimerEvents(){
+		launchEnd();
+		primeEnd();
 	}
 
 public:
@@ -164,17 +192,20 @@ public:
 		rollerLowerButton(&stick3, 1),
 		launcherSwitch(2),
 		launcherTimer(),
+		primerTimer(),
 		straightenRobotTimer(),
 		compressor(1,7),
 		rollerValve(1),
 		rangeFinder(1,2)
-		
 	{
 		myRobot.SetExpiration(0.1);
 		this->SetPeriod(0); 	//Set update period to sync with robot control packets (20ms nominal)
 	
 		myRobot.SetInvertedMotor(RobotDrive::kFrontRightMotor, true);
 		myRobot.SetInvertedMotor(RobotDrive::kRearRightMotor, true);
+		launching = false;
+		priming = false;
+
 	}
 	
 /**
@@ -267,6 +298,8 @@ void RobotDemo::TeleopPeriodic() {
 	SmartDashboard::PutBoolean("Compressor Enabled:",compressor.Enabled());
 	SmartDashboard::PutBoolean("Compressor Active:",compressor.GetPressureSwitchValue());
 	SmartDashboard::PutNumber("RangeFinder Volts:", rangeFinder.GetVoltage());
+	SmartDashboard::PutBoolean("ChooChoo Switch:",launcherSwitch.Get());
+	SmartDashboard::PutBoolean("ChooChoo Switch:",launching);
 	
 	
 	/////DRIVE CODE///////
@@ -307,21 +340,26 @@ void RobotDemo::TeleopPeriodic() {
 	}
 
 
-	
+	if(primeButton.Get()){
+		primeLauncher();
+	}
 	//myRobot.mecanumDrive_polar(magnitude, direction, rotation);
 
 
 	
 	
 	//////Manual Launch//////////
-	if(launchButton.Get()==1 && launcherSwitch.Get()==0){
+	if(launchButton.Get()==1 && launcherSwitch.Get()==1){
 		launch();
 	}
 	//////Auto Launch/////////
-	if(autoLaunchButton.Get()==1 && launcherSwitch.Get()==0){
+	if(autoLaunchButton.Get()==1 && launcherSwitch.Get()==1){
 		autoLaunch();
 	}
 		
+	///CHECK FOR EXTERNAL TIMER EVENTS
+	checkTimerEvents();
+	
 	
 }
 

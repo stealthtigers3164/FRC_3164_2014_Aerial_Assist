@@ -96,11 +96,10 @@ class RobotDemo : public IterativeRobot
 	}
 	
 	void autoLaunch(){
-		//straightenRobot();
+		straightenRobot();
 		cerr << "autolaunchStarted ";
 		//Move to catapult "sweet spot". Default is in here, can be overridden by control station.
-		double sweetSpot= 12*6; //6 feet
-		sweetSpot=(SmartDashboard::GetNumber("Sweet Spot:")); //not sure if errors would happen if input was blank.
+		double sweetSpot= 88; //inches.
 		cerr << "smartdashboardCall ";
 		if(getInches() < sweetSpot){ //if closer to target than allowed
 			//distance to target is less than best distance, back up
@@ -172,6 +171,14 @@ class RobotDemo : public IterativeRobot
 		launchEnd();
 		primeEnd();
 	}
+	
+	void displayStats(){
+		SmartDashboard::PutBoolean("Compressor Enabled:",compressor.Enabled());
+		SmartDashboard::PutBoolean("Compressor Active:",compressor.GetPressureSwitchValue());
+		SmartDashboard::PutNumber("RangeFinder Volts:", rangeFinder.GetVoltage());
+		SmartDashboard::PutBoolean("ChooChoo Switch:",launcherSwitch.Get());
+		SmartDashboard::PutNumber("RangeFinder Inches",getInches());
+	}
 
 public:
 	RobotDemo():
@@ -216,9 +223,7 @@ public:
  * be called when the robot is first powered on.  It will be called exactly 1 time.
  */
 void RobotDemo::RobotInit() {
-	SmartDashboard::PutBoolean("Compressor Enabled:",compressor.Enabled());
-	SmartDashboard::PutBoolean("Compressor Active:",compressor.GetPressureSwitchValue());
-	SmartDashboard::PutNumber("RangeFinder Volts:", rangeFinder.GetVoltage());
+
 	
 }
 
@@ -273,9 +278,7 @@ void RobotDemo::AutonomousInit() {
  */
 void RobotDemo::AutonomousPeriodic() {
 	////STATS////
-	SmartDashboard::PutBoolean("Compressor Enabled:",compressor.Enabled());
-	SmartDashboard::PutBoolean("Compressor Active:",compressor.GetPressureSwitchValue());
-	SmartDashboard::PutNumber("RangeFinder Volts:", rangeFinder.GetVoltage());
+	displayStats();
 	/////////////
 	
 	
@@ -297,11 +300,7 @@ void RobotDemo::TeleopInit() {
  */
 void RobotDemo::TeleopPeriodic() {
 	/////STATS//////
-	SmartDashboard::PutBoolean("Compressor Enabled:",compressor.Enabled());
-	SmartDashboard::PutBoolean("Compressor Active:",compressor.GetPressureSwitchValue());
-	SmartDashboard::PutNumber("RangeFinder Volts:", rangeFinder.GetVoltage());
-	SmartDashboard::PutBoolean("ChooChoo Switch:",launcherSwitch.Get());
-	SmartDashboard::PutNumber("RangeFinder Inches",getInches());
+	displayStats();
 	
 	
 	/////DRIVE CODE///////

@@ -99,7 +99,7 @@ class RobotDemo : public IterativeRobot
 		straightenRobot();
 		cerr << "autolaunchStarted ";
 		//Move to catapult "sweet spot". Default is in here, can be overridden by control station.
-		double sweetSpot= 88; //inches.
+		double sweetSpot= 84; //inches.
 		cerr << "smartdashboardCall ";
 		if(getInches() < sweetSpot){ //if closer to target than allowed
 			//distance to target is less than best distance, back up

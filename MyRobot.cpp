@@ -389,9 +389,7 @@ void RobotDemo::TestPeriodic() {
 		compressor.Stop();
 	}
 	
-	SmartDashboard::PutBoolean("Compressor Enabled:",compressor.Enabled());
-	SmartDashboard::PutBoolean("Compressor Active:",compressor.GetPressureSwitchValue());
-	SmartDashboard::PutNumber("RangeFinder Volts:", rangeFinder.GetVoltage());
+	displayStats();
 	
 }
 

@@ -7,7 +7,7 @@
  * This program is based off of the IterativeRobot template provided with WPIlb.
  */ 
 
-// ***88 inches is the sweet spot!***
+// ***84 inches is the sweet spot!***
 class RobotDemo : public IterativeRobot
 {
 	RobotDrive myRobot; // robot drive system
@@ -50,7 +50,7 @@ class RobotDemo : public IterativeRobot
 		
 		*/
 		
-		int tolerance = 5; //in inches. This is used later in the program.
+		int tolerance = 1; //in inches. This is used later in the program.
 
 		float lowestValue = 10000; // Big Number!
 		float currentValue = getInches();
@@ -96,12 +96,12 @@ class RobotDemo : public IterativeRobot
 	}
 	
 	void autoLaunch(){
-		straightenRobot();
-		
+		//straightenRobot();
+		cerr << "autolaunchStarted ";
 		//Move to catapult "sweet spot". Default is in here, can be overridden by control station.
-		double sweetSpot= 12*10; //10 feet
+		double sweetSpot= 12*6; //6 feet
 		sweetSpot=(SmartDashboard::GetNumber("Sweet Spot:")); //not sure if errors would happen if input was blank.
-		
+		cerr << "smartdashboardCall ";
 		if(getInches() < sweetSpot){ //if closer to target than allowed
 			//distance to target is less than best distance, back up
 			myRobot.ArcadeDrive(.1, 0, true);
@@ -112,9 +112,9 @@ class RobotDemo : public IterativeRobot
 			//we're at the position, stop the car!
 			myRobot.ArcadeDrive(0, 0, true);
 		}
-		
+		cerr << "launching...";
 		launch();
-		
+		cerr << "completed";
 		
 		
 		
@@ -124,7 +124,7 @@ class RobotDemo : public IterativeRobot
 
 	float getInches(){ //this reports distance from target in inches.
 		float voltage=rangeFinder.GetVoltage();
-		float sensitivity = .1024;
+		float sensitivity = .081;
 		float inches=voltage*sensitivity*1000;
 		return inches;
 	}
@@ -148,6 +148,7 @@ class RobotDemo : public IterativeRobot
 	}
 	
 	void launch(){
+		//15 kilograms of resistance on launcher.
 		cerr << "launch ";
 		launching = true;
 		//primeLauncher();
@@ -201,8 +202,8 @@ public:
 		myRobot.SetExpiration(0.1);
 		this->SetPeriod(0); 	//Set update period to sync with robot control packets (20ms nominal)
 	
-		myRobot.SetInvertedMotor(RobotDrive::kFrontRightMotor, true);
-		myRobot.SetInvertedMotor(RobotDrive::kRearRightMotor, true);
+		myRobot.SetInvertedMotor(RobotDrive::kFrontLeftMotor, true);
+		myRobot.SetInvertedMotor(RobotDrive::kRearLeftMotor, true);
 		launching = false;
 		priming = false;
 
@@ -253,6 +254,7 @@ void RobotDemo::AutonomousInit() {
 	rangeFinder.SetOversampleBits(bits); 
 	rangeFinder.GetOversampleBits();
 	
+	
 	compressor.Start(); //Start the compressor.
 	
 	///Begin Autonomous mode!
@@ -299,7 +301,7 @@ void RobotDemo::TeleopPeriodic() {
 	SmartDashboard::PutBoolean("Compressor Active:",compressor.GetPressureSwitchValue());
 	SmartDashboard::PutNumber("RangeFinder Volts:", rangeFinder.GetVoltage());
 	SmartDashboard::PutBoolean("ChooChoo Switch:",launcherSwitch.Get());
-	SmartDashboard::PutBoolean("ChooChoo Switch:",launching);
+	SmartDashboard::PutNumber("RangeFinder Inches",getInches());
 	
 	
 	/////DRIVE CODE///////

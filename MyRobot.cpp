@@ -183,7 +183,7 @@ class RobotDemo : public IterativeRobot
 public:
 	RobotDemo():
 		//everything in this list must be declared in the same order as above.
-		myRobot(2, 1, 4, 3),	// frontLeft, rearLeft, frontRight, rearRight
+		myRobot(3, 4, 1, 2),	// frontLeft, rearLeft, frontRight, rearRight
 		stick1(1),
 		stick2(2),
 		stick3(3),

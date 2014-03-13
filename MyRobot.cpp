@@ -42,6 +42,16 @@ class RobotDemo : public IterativeRobot
 	bool compressorOn;
 	
 	
+	float deadzone(float input){
+		if(input<.1&&!input<0){
+			input = 0;
+		}
+		if(input>-.1&&!input>0){
+			input = 0;
+		}
+		return input;
+	}
+	
 	void straightenRobot(){
 		
 		/* A quick synopsis of how this works, as the code is a bit long and fun to read.
@@ -215,7 +225,8 @@ class RobotDemo : public IterativeRobot
 public:
 	RobotDemo():
 		//everything in this list must be declared in the same order as above.
-		myRobot(3, 4, 1, 2),	// frontLeft, rearLeft, frontRight, rearRight
+		//myRobot(3, 4, 1, 2),	// frontLeft, rearLeft, frontRight, rearRight //old config,testbot
+		myRobot(2, 4, 1, 3),
 		stick1(1),
 		stick2(2),
 		stick3(3),
@@ -241,7 +252,7 @@ public:
 		rangeFinder(1,2)
 
 	{
-		myRobot.SetSafetyEnabled(false);
+		myRobot.SetSafetyEnabled(true);
 		myRobot.SetExpiration(0.1);
 		this->SetPeriod(0); 	//Set update period to sync with robot control packets (20ms nominal)
 	
@@ -354,10 +365,9 @@ void RobotDemo::TeleopPeriodic() {
 	//The following commented-out lines are for holonomic drive.
 	float magnitude=stick1.GetY();
 	float direction= stick1.GetX();
-	float rotation= stick2.GetZ();
+	float rotation= stick2.GetX();
 
 	
-	myRobot.ArcadeDrive ((magnitude), direction, true); // drive with arcade style
 	
 	
 	if(rollerLiftButton.Get()){
@@ -392,7 +402,7 @@ void RobotDemo::TeleopPeriodic() {
 	if(primeButton.Get()){
 		primeLauncher();
 	}
-	myRobot.HolonomicDrive(magnitude, direction, rotation);
+	myRobot.MecanumDrive_Cartesian(deadzone(magnitude), deadzone(direction), deadzone(rotation));
 
 
 	

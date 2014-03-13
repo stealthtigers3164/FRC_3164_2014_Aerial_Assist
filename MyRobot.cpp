@@ -349,12 +349,12 @@ void RobotDemo::TeleopPeriodic() {
 	/////DRIVE CODE///////
 	
 	//ports 1 and 2 are left, 3 and 4 are right
-	float magnitude=stick1.GetX();
-	float direction= stick1.GetY();
+	//float magnitude=stick1.GetX();
+	//float direction= stick1.GetY();
 	//The following commented-out lines are for holonomic drive.
-	//float magnitude=stick1.GetY();
-	//float direction= stick1.GetX();
-	//float rotation= stick2.GetZ();
+	float magnitude=stick1.GetY();
+	float direction= stick1.GetX();
+	float rotation= stick2.GetZ();
 
 	
 	myRobot.ArcadeDrive ((magnitude), direction, true); // drive with arcade style
@@ -392,7 +392,7 @@ void RobotDemo::TeleopPeriodic() {
 	if(primeButton.Get()){
 		primeLauncher();
 	}
-	//myRobot.mecanumDrive_cartesian(magnitude, direction, rotation);
+	myRobot.HolonomicDrive(magnitude, direction, rotation);
 
 
 	

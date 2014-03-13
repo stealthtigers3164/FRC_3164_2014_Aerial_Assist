@@ -26,14 +26,20 @@ class RobotDemo : public IterativeRobot
 	JoystickButton rollerLiftButton;
 	JoystickButton rollerLowerButton;
 	DigitalInput launcherSwitch;
+	DigitalInput compressorSwitch;
 	Timer launcherTimer;
 	Timer primerTimer;
 	Timer straightenRobotTimer;
-	Compressor compressor;
-	Solenoid rollerValve;
+	Relay compressor;
+	Solenoid rollerValve1;
+	Solenoid rollerValve2;
 	AnalogChannel rangeFinder;
 	bool launching;
 	bool priming;
+	bool linedUp;
+	double sweetSpot;
+	int tolerance;
+	bool compressorOn;
 	
 	
 	void straightenRobot(){
@@ -50,57 +56,67 @@ class RobotDemo : public IterativeRobot
 		
 		*/
 		
-		int tolerance = 1; //in inches. This is used later in the program.
+		tolerance = 1; //in inches. This is used later in the program.
 
 		float lowestValue = 10000; // Big Number!
 		float currentValue = getInches();
-		myRobot.ArcadeDrive (0, .05, true); //Turn right
+		myRobot.SetLeftRightMotorOutputs (.2, -.2); //left, right
 		straightenRobotTimer.Reset();
 		straightenRobotTimer.Start();
-		while(!(straightenRobotTimer.HasPeriodPassed(.3))){ //Find the lowest value.
+		cerr << "while1";
+		while(!(straightenRobotTimer.HasPeriodPassed(.5))){ //Find the lowest value.
 			currentValue = getInches();
 			if(currentValue < lowestValue){
 				lowestValue=currentValue;
 			}
 		}
-		myRobot.ArcadeDrive(0, .05, true); //turn left, twice as long.
+		myRobot.SetLeftRightMotorOutputs (-.2, .2); //left, right
 		straightenRobotTimer.Reset();
 		straightenRobotTimer.Start();
-		while(!(straightenRobotTimer.HasPeriodPassed(.6))){ //Find the lowest value.
+		cerr << "while2";
+		while(!(straightenRobotTimer.HasPeriodPassed(1))){ //Find the lowest value.
 			float currentValue = getInches();
 			if(currentValue < lowestValue){
 				lowestValue=currentValue;				}
 			}
-		myRobot.ArcadeDrive(0, 0, true); //stop moving
+		myRobot.SetLeftRightMotorOutputs (0, 0); //left, right
 		
-		
+		cerr << "while3";
 		
 		////Now to line up to near where the lowest value was found. There is a small tolerance,
 		////defined above.
 		
-		myRobot.ArcadeDrive(0, .05, true);
+		myRobot.SetLeftRightMotorOutputs (.2, -.2); //left, right
+;
 		straightenRobotTimer.Reset();
 		straightenRobotTimer.Start();
-		bool linedUp = false;
-		while(!(straightenRobotTimer.HasPeriodPassed(.7)) || linedUp==true){ //The program calls failure after the .7 seconds, instead of spinning in circles. 
+		cerr << "setTimer";
+		linedUp = false;
+		cerr << "checkedLinedUp";
+		while(!(straightenRobotTimer.HasPeriodPassed(1.1)) || !linedUp==true){ //The program calls failure after the .7 seconds, instead of spinning in circles. 
 			float currentValue = getInches();
 			if(lowestValue + tolerance >= currentValue){
-				myRobot.ArcadeDrive(0, 0, true);
+				myRobot.SetLeftRightMotorOutputs (0, 0); //stop
 				linedUp = true;
 			}
 		}
-		myRobot.ArcadeDrive(0, 0, true); //stop thge robot after the 6 seconds if not stopped already.
+		myRobot.SetLeftRightMotorOutputs ( 0, 0); //left, right
+ //stop thge robot after the 11 seconds if not stopped already.
 		
+		cerr << "while4";
 		//We're done! 
 			
 	}
 	
 	void autoLaunch(){
-		straightenRobot();
 		cerr << "autolaunchStarted ";
+		while(autoLaunchButton.Get()){}
+		cerr << "straighteningRobot ";
+		straightenRobot();
+		cerr << "straghtened ";
 		//Move to catapult "sweet spot". Default is in here, can be overridden by control station.
-		double sweetSpot= 84; //inches.
-		cerr << "smartdashboardCall ";
+		sweetSpot= 84; //inches.
+		cerr << "sweetspot_defined ";
 		if(getInches() < sweetSpot){ //if closer to target than allowed
 			//distance to target is less than best distance, back up
 			myRobot.ArcadeDrive(.1, 0, true);
@@ -139,7 +155,7 @@ class RobotDemo : public IterativeRobot
 	
 	void primeEnd(){
 
-		if(launcherSwitch.Get() && launching == false && priming == true){
+		if(launcherSwitch.Get() && priming == true){
 			cerr << "primeEnd ";
 			priming = false;
 			launcher.SetSpeed(0);
@@ -167,17 +183,33 @@ class RobotDemo : public IterativeRobot
 		}
 	}
 	
+	void compressorHandler(){
+		if(compressorSwitch.Get() == true&&compressorOn==true){
+			compressor.Set(Relay::kOn);
+		}else{
+			compressor.Set(Relay::kOff);
+
+		}
+	}
+	
+/*	void compressorOn(Relay::Value direction){
+		
+	}
+	
+	void compressorOff(Relay::Value direction){
+	}*/
+	
 	void checkTimerEvents(){
 		launchEnd();
 		primeEnd();
+		compressorHandler();
 	}
 	
 	void displayStats(){
-		SmartDashboard::PutBoolean("Compressor Enabled:",compressor.Enabled());
-		SmartDashboard::PutBoolean("Compressor Active:",compressor.GetPressureSwitchValue());
 		SmartDashboard::PutNumber("RangeFinder Volts:", rangeFinder.GetVoltage());
 		SmartDashboard::PutBoolean("ChooChoo Switch:",launcherSwitch.Get());
 		SmartDashboard::PutNumber("RangeFinder Inches",getInches());
+		SmartDashboard::PutBoolean("Compressor Operating:", compressor.Get());
 	}
 
 public:
@@ -199,19 +231,24 @@ public:
 		rollerLiftButton(&stick3, 3),
 		rollerLowerButton(&stick3, 1),
 		launcherSwitch(2),
+		compressorSwitch(1),
 		launcherTimer(),
 		primerTimer(),
 		straightenRobotTimer(),
-		compressor(1,7),
-		rollerValve(1),
+		compressor(7, Relay::kReverseOnly),
+		rollerValve1(1),
+		rollerValve2(8),
 		rangeFinder(1,2)
+
 	{
+		myRobot.SetSafetyEnabled(false);
 		myRobot.SetExpiration(0.1);
 		this->SetPeriod(0); 	//Set update period to sync with robot control packets (20ms nominal)
 	
 		myRobot.SetInvertedMotor(RobotDrive::kFrontLeftMotor, true);
 		myRobot.SetInvertedMotor(RobotDrive::kRearLeftMotor, true);
 		launching = false;
+		compressorOn = true;
 		priming = false;
 
 	}
@@ -260,16 +297,24 @@ void RobotDemo::AutonomousInit() {
 	rangeFinder.GetOversampleBits();
 	
 	
-	compressor.Start(); //Start the compressor.
+
 	
 	///Begin Autonomous mode!
-	
-	autoLaunch();
+//	myRobot.SetInvertedMotor(RobotDrive::kFrontRightMotor, true);
+//	myRobot.SetInvertedMotor(RobotDrive::kRearRightMotor, true);
+	displayStats();
+	primeLauncher();
+	launch();
 	
 	while(!(getInches() < 12)){
-	myRobot.ArcadeDrive (.3, 0, true); 
+		displayStats();
+	myRobot.HolonomicDrive(.7,0,0); 
 	}
+	myRobot.HolonomicDrive(0,0,0);
+//	myRobot.SetInvertedMotor(RobotDrive::kFrontRightMotor, false);
+//	myRobot.SetInvertedMotor(RobotDrive::kRearRightMotor, false);
 }
+
 /**
  * Periodic code for autonomous mode should go here.
  *
@@ -289,8 +334,6 @@ void RobotDemo::AutonomousPeriodic() {
 
 void RobotDemo::TeleopInit() {
 	
-	//Just in case it isn't already on somehow:
-	compressor.Start();
 }
 /**
  * Periodic code for teleop mode should go here.
@@ -311,26 +354,31 @@ void RobotDemo::TeleopPeriodic() {
 	//The following commented-out lines are for holonomic drive.
 	//float magnitude=stick1.GetY();
 	//float direction= stick1.GetX();
-	float rotation= stick2.GetZ();
+	//float rotation= stick2.GetZ();
 
 	
 	myRobot.ArcadeDrive ((magnitude), direction, true); // drive with arcade style
 	
-	if(compressorStartButton.Get()){
-		compressor.Start();
-	}
-	
-	if(compressorStopButton.Get()){
-		compressor.Stop();
-	}
 	
 	if(rollerLiftButton.Get()){
-		rollerValve.Set(true);
+		rollerValve1.Set(true);
+		rollerValve2.Set(false);
 	}
 	
 	if(rollerLowerButton.Get()){
-		rollerValve.Set(false);
+		rollerValve1.Set(false);
+		rollerValve2.Set(true);
 	}
+	
+	if(compressorStartButton.Get()){
+		compressor.Set(Relay::kOn);
+		compressorOn=true;
+	}
+	if(compressorStopButton.Get()){
+		compressor.Set(Relay::kOff);
+		compressorOn=false;
+	}
+	
 	
 	if(rollerForwardButton.Get()){
 		roller.SetSpeed(.5); //speeds max out at 1.
@@ -344,21 +392,17 @@ void RobotDemo::TeleopPeriodic() {
 	if(primeButton.Get()){
 		primeLauncher();
 	}
-	//myRobot.mecanumDrive_polar(magnitude, direction, rotation);
+	//myRobot.mecanumDrive_cartesian(magnitude, direction, rotation);
 
-<<<<<<< HEAD
-	myRobot.ArcadeDrive ((magnitude/1), (direction/4), false); //apply arcade drive settings. (speeds are throttled)
-=======
->>>>>>> testing
 
 	
 	
 	//////Manual Launch//////////
-	if(launchButton.Get()==1 && launcherSwitch.Get()==1){
+	if(launchButton.Get()==1){
 		launch();
 	}
 	//////Auto Launch/////////
-	if(autoLaunchButton.Get()==1 && launcherSwitch.Get()==1){
+	if(autoLaunchButton.Get()==1){
 		autoLaunch();
 	}
 		
@@ -375,7 +419,7 @@ void RobotDemo::TeleopPeriodic() {
  * the robot enters test mode.
  */
 void RobotDemo::TestInit() {
-	compressor.Start();
+
 }
 
 /**
@@ -385,13 +429,7 @@ void RobotDemo::TestInit() {
  * rate while the robot is in test mode.
  */
 void RobotDemo::TestPeriodic() {
-	if(compressorStartButton.Get()){
-		compressor.Start();
-	}
-	
-	if(compressorStopButton.Get()){
-		compressor.Stop();
-	}
+
 	
 	displayStats();
 	

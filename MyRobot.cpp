@@ -25,11 +25,13 @@ class RobotDemo : public IterativeRobot
 	JoystickButton rollerBackwardButton;
 	JoystickButton rollerLiftButton;
 	JoystickButton rollerLowerButton;
+	JoystickButton launcherEStop;
 	DigitalInput launcherSwitch;
 	DigitalInput compressorSwitch;
 	Timer launcherTimer;
 	Timer primerTimer;
 	Timer straightenRobotTimer;
+	Timer autoTimer;
 	Relay compressor;
 	Solenoid rollerValve1;
 	Solenoid rollerValve2;
@@ -41,6 +43,16 @@ class RobotDemo : public IterativeRobot
 	int tolerance;
 	bool compressorOn;
 	
+	
+	float deadzone(float input){
+		if(input<.1&&!input<0){
+			input = 0;
+		}
+		if(input>-.1&&!input>0){
+			input = 0;
+		}
+		return input;
+	}
 	
 	void straightenRobot(){
 		
@@ -139,7 +151,7 @@ class RobotDemo : public IterativeRobot
 
 	float getInches(){ //this reports distance from target in inches.
 		float voltage=rangeFinder.GetVoltage();
-		float sensitivity = .081;
+		float sensitivity = .1024;
 		float inches=voltage*sensitivity*1000;
 		return inches;
 	}
@@ -203,6 +215,7 @@ class RobotDemo : public IterativeRobot
 		launchEnd();
 		primeEnd();
 		compressorHandler();
+		
 	}
 	
 	void displayStats(){
@@ -215,7 +228,8 @@ class RobotDemo : public IterativeRobot
 public:
 	RobotDemo():
 		//everything in this list must be declared in the same order as above.
-		myRobot(3, 4, 1, 2),	// frontLeft, rearLeft, frontRight, rearRight
+		//myRobot(3, 4, 1, 2),	// frontLeft, rearLeft, frontRight, rearRight //old config,testbot
+		myRobot(2, 4, 1, 3),
 		stick1(1),
 		stick2(2),
 		stick3(3),
@@ -230,18 +244,20 @@ public:
 		rollerBackwardButton(&stick3, 4),
 		rollerLiftButton(&stick3, 3),
 		rollerLowerButton(&stick3, 1),
+		launcherEStop(&stick3,6),
 		launcherSwitch(2),
 		compressorSwitch(1),
 		launcherTimer(),
 		primerTimer(),
 		straightenRobotTimer(),
+		autoTimer(),
 		compressor(7, Relay::kReverseOnly),
 		rollerValve1(1),
 		rollerValve2(8),
 		rangeFinder(1,2)
 
 	{
-		myRobot.SetSafetyEnabled(false);
+		myRobot.SetSafetyEnabled(true);
 		myRobot.SetExpiration(0.1);
 		this->SetPeriod(0); 	//Set update period to sync with robot control packets (20ms nominal)
 	
@@ -290,31 +306,52 @@ void RobotDemo::DisabledPeriodic() {
  */
 void RobotDemo::AutonomousInit() {
 	//Setup oversampling and averaging for rangefinder. The sensor only polls at 20Hz anyway.
-	int bits=16;
-	rangeFinder.SetAverageBits(bits); 
-	rangeFinder.GetAverageBits(); 
-	rangeFinder.SetOversampleBits(bits); 
-	rangeFinder.GetOversampleBits();
+	////////////////////UNCOMMENT FOR SIMPLE AUTO MODE////////////////////////
+	
+	myRobot.MecanumDrive_Cartesian(-1,0,0);
+	autoTimer.Reset();
+	autoTimer.Start();
+	while(!autoTimer.HasPeriodPassed(5.0)){
+		displayStats();
+		myRobot.MecanumDrive_Cartesian(-.4,0,0);//keeps watchdog fed
+	}
+	myRobot.MecanumDrive_Cartesian(0,0,0);
 	
 	
 
+/////////////////////////UNCOMMENT FOR ADVANCED AUTO MODE/////////////////////
 	
-	///Begin Autonomous mode!
-//	myRobot.SetInvertedMotor(RobotDrive::kFrontRightMotor, true);
-//	myRobot.SetInvertedMotor(RobotDrive::kRearRightMotor, true);
-	displayStats();
+	//	myRobot.SetInvertedMotor(RobotDrive::kFrontRightMotor, true);
+	//	myRobot.SetInvertedMotor(RobotDrive::kRearRightMotor, true);
+/*	displayStats();
 	primeLauncher();
+
+	rollerValve1.Set(false);
+	rollerValve2.Set(true);
+	while((getInches() > 82)&&IsAutonomous()){
+				displayStats();
+				myRobot.MecanumDrive_Cartesian(.4, 0, 0);
+				checkTimerEvents();
+			}
+	myRobot.MecanumDrive_Cartesian(0,0,0);
+	while(priming=true&&IsAutonomous()){
+		checkTimerEvents();
+		displayStats();
+		myRobot.MecanumDrive_Cartesian(0,0,0);
+	}
 	launch();
 	
-	while(!(getInches() < 12)){
+	while(!(getInches() < 14&&IsAutonomous())){
 		displayStats();
-	myRobot.HolonomicDrive(.7,0,0); 
+		checkTimerEvents();
+		myRobot.MecanumDrive_Cartesian(.4, 0, 0);
 	}
-	myRobot.HolonomicDrive(0,0,0);
+	myRobot.MecanumDrive_Cartesian(0, 0, 0);
 //	myRobot.SetInvertedMotor(RobotDrive::kFrontRightMotor, false);
 //	myRobot.SetInvertedMotor(RobotDrive::kRearRightMotor, false);
-}
 
+*/
+}
 /**
  * Periodic code for autonomous mode should go here.
  *
@@ -349,15 +386,14 @@ void RobotDemo::TeleopPeriodic() {
 	/////DRIVE CODE///////
 	
 	//ports 1 and 2 are left, 3 and 4 are right
-	float magnitude=stick1.GetX();
-	float direction= stick1.GetY();
+	//float magnitude=stick1.GetX();
+	//float direction= stick1.GetY();
 	//The following commented-out lines are for holonomic drive.
-	//float magnitude=stick1.GetY();
-	//float direction= stick1.GetX();
-	//float rotation= stick2.GetZ();
+	float magnitude=stick1.GetY();
+	float direction=-stick1.GetX();
+	float rotation= stick2.GetX();
 
 	
-	myRobot.ArcadeDrive ((magnitude), direction, true); // drive with arcade style
 	
 	
 	if(rollerLiftButton.Get()){
@@ -392,7 +428,12 @@ void RobotDemo::TeleopPeriodic() {
 	if(primeButton.Get()){
 		primeLauncher();
 	}
-	//myRobot.mecanumDrive_cartesian(magnitude, direction, rotation);
+	
+	if(launcherEStop.Get()){
+		launcher.SetSpeed(0);
+		priming = false;
+	}
+	myRobot.MecanumDrive_Cartesian(deadzone(magnitude), deadzone(direction), deadzone(rotation));
 
 
 	

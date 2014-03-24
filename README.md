@@ -3,8 +3,11 @@ FRC_3164_2014_Aerial_Assist
 
 Stealth Tigers FRC Team 3164 2014 C++ Code Repo
 
-[not yet tested] To import into windriver, download the entire project and open it in Windriver Workbench 3.3.
-
+To import into windriver:
+1) Open Windriver
+2) Download the project
+3) File > Import >  Existing Projects into Workspace
+4) Point Windriver at the FRC_3164_2014_Aerial_Assist folder you downloaded.
 
 Note to mantainers from Team 3164:
 

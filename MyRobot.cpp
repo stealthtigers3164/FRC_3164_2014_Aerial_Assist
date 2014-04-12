@@ -7,13 +7,13 @@
  * This program is based off of the IterativeRobot template provided with WPIlb.
  */ 
 
-// ***84 inches is the sweet spot!***
 class RobotDemo : public IterativeRobot
 {
 	RobotDrive myRobot; // robot drive system
 	Joystick stick1;
 	Joystick stick2;
 	Joystick stick3;
+	Joystick stick4;
 	Victor roller;
 	Victor launcher;
 	JoystickButton launchButton;
@@ -26,12 +26,22 @@ class RobotDemo : public IterativeRobot
 	JoystickButton rollerLiftButton;
 	JoystickButton rollerLowerButton;
 	JoystickButton launcherEStop;
+	JoystickButton spasmButton;
+	JoystickButton phoneLaunchButton;
+	JoystickButton phonePrimeButton;
+	JoystickButton phoneRollerForwardButton;
+	JoystickButton phoneRollerBackwardButton;
+	JoystickButton phoneRollerLiftButton;
+	JoystickButton phoneRollerLowerButton;
+	JoystickButton phoneControlOnButton;
+	JoystickButton phoneControlOffButton;
 	DigitalInput launcherSwitch;
 	DigitalInput compressorSwitch;
 	Timer launcherTimer;
 	Timer primerTimer;
 	Timer straightenRobotTimer;
 	Timer autoTimer;
+	Timer spasmTimer;
 	Relay compressor;
 	Solenoid rollerValve1;
 	Solenoid rollerValve2;
@@ -42,6 +52,7 @@ class RobotDemo : public IterativeRobot
 	double sweetSpot;
 	int tolerance;
 	bool compressorOn;
+	bool phoneToggle;
 	
 	
 	float deadzone(float input){
@@ -177,6 +188,7 @@ class RobotDemo : public IterativeRobot
 	void launch(){
 		//15 kilograms of resistance on launcher.
 		cerr << "launch ";
+		priming = false;
 		launching = true;
 		//primeLauncher();
 		launcherTimer.Reset();
@@ -204,6 +216,29 @@ class RobotDemo : public IterativeRobot
 		}
 	}
 	
+	void knockBallIntoLauncher(){
+		myRobot.MecanumDrive_Cartesian(-.6, 0, 0);
+		spasmTimer.Reset();
+		spasmTimer.Start();
+		while(!spasmTimer.HasPeriodPassed(.3)){
+			myRobot.MecanumDrive_Cartesian(-.6, 0, 0);
+			checkTimerEvents();
+			displayStats();
+		}
+	/*	myRobot.MecanumDrive_Cartesian(1, 0, 0);
+		
+		spasmTimer.Reset();
+		spasmTimer.Start();
+		while(!spasmTimer.HasPeriodPassed(.15)){
+			myRobot.MecanumDrive_Cartesian(1, 0, 0);
+			checkTimerEvents();
+			displayStats();
+		}
+		*/
+		myRobot.Drive(0,0);
+	}
+	
+	
 /*	void compressorOn(Relay::Value direction){
 		
 	}
@@ -215,6 +250,8 @@ class RobotDemo : public IterativeRobot
 		launchEnd();
 		primeEnd();
 		compressorHandler();
+		
+
 		
 	}
 	
@@ -233,6 +270,7 @@ public:
 		stick1(1),
 		stick2(2),
 		stick3(3),
+		stick4(4),
 		roller(5),
 		launcher(6),
 		launchButton(&stick1, 1),
@@ -245,6 +283,15 @@ public:
 		rollerLiftButton(&stick3, 3),
 		rollerLowerButton(&stick3, 1),
 		launcherEStop(&stick3,6),
+		spasmButton(&stick2,2),
+		phoneLaunchButton(&stick4, 6),
+		phonePrimeButton(&stick4, 5),
+		phoneRollerForwardButton(&stick4, 3),
+		phoneRollerBackwardButton(&stick4, 4),
+		phoneRollerLiftButton(&stick4, 1),
+		phoneRollerLowerButton(&stick4, 2),
+		phoneControlOnButton(&stick1, 6),
+		phoneControlOffButton(&stick1, 7),
 		launcherSwitch(2),
 		compressorSwitch(1),
 		launcherTimer(),
@@ -266,6 +313,7 @@ public:
 		launching = false;
 		compressorOn = true;
 		priming = false;
+		phoneToggle = false;
 
 	}
 	
@@ -307,7 +355,7 @@ void RobotDemo::DisabledPeriodic() {
 void RobotDemo::AutonomousInit() {
 	//Setup oversampling and averaging for rangefinder. The sensor only polls at 20Hz anyway.
 	////////////////////UNCOMMENT FOR SIMPLE AUTO MODE////////////////////////
-	
+/*
 	myRobot.MecanumDrive_Cartesian(-1,0,0);
 	autoTimer.Reset();
 	autoTimer.Start();
@@ -315,42 +363,139 @@ void RobotDemo::AutonomousInit() {
 		displayStats();
 		myRobot.MecanumDrive_Cartesian(-.4,0,0);//keeps watchdog fed
 	}
-	myRobot.MecanumDrive_Cartesian(0,0,0);
-	
-	
+	myRobot.Drive(0,0);
 
-/////////////////////////UNCOMMENT FOR ADVANCED AUTO MODE/////////////////////
-	
-	//	myRobot.SetInvertedMotor(RobotDrive::kFrontRightMotor, true);
-	//	myRobot.SetInvertedMotor(RobotDrive::kRearRightMotor, true);
-/*	displayStats();
+*/
+/////////////////////////UNCOMMENT FOR HIGH GOAL AUTO MODE/////////////////////
+	/*
+	cerr << "beginAuto ";
+	displayStats();
 	primeLauncher();
-
 	rollerValve1.Set(false);
 	rollerValve2.Set(true);
-	while((getInches() > 82)&&IsAutonomous()){
+	
+	
+	roller.SetSpeed(-1);
+	
+	autoTimer.Reset();
+	autoTimer.Start();
+	
+	while(!autoTimer.HasPeriodPassed(3.0)){
+		myRobot.Drive(0,0); //feed watchdog
+		displayStats();
+		checkTimerEvents(); //check for timer-based events.
+	}
+	
+	cerr << "1 ";
+	
+	rollerValve1.Set(true);
+	rollerValve2.Set(false);
+	
+	autoTimer.Reset();
+	autoTimer.Start();
+	
+	while(!autoTimer.HasPeriodPassed(2.0)){
+		myRobot.Drive(0,0); //feed watchdog
+		displayStats();
+		checkTimerEvents(); //check for timer-based events.
+	}
+	
+	cerr << "2 ";
+	
+	rollerValve1.Set(false);
+	rollerValve2.Set(true);
+	
+	autoTimer.Reset();
+	autoTimer.Start();
+	
+	while(!autoTimer.HasPeriodPassed(1.0)){
+		myRobot.Drive(0,0); //feed watchdog
+		displayStats();
+		checkTimerEvents(); //check for timer-based events.
+	}
+	roller.SetSpeed(0);
+	cerr << "3 ";
+	while((getInches() > 116)){  //134 latest sweet spot
 				displayStats();
-				myRobot.MecanumDrive_Cartesian(.4, 0, 0);
+				myRobot.MecanumDrive_Cartesian(-.4, 0, 0);
 				checkTimerEvents();
 			}
-	myRobot.MecanumDrive_Cartesian(0,0,0);
-	while(priming=true&&IsAutonomous()){
-		checkTimerEvents();
+	cerr << "4 ";
+	//myRobot.MecanumDrive_Cartesian(0,0,0);
+	myRobot.Drive(0,0);
+	
+	while(!launcherSwitch.Get()){
+		myRobot.Drive(0,0); //feed watchdog
 		displayStats();
-		myRobot.MecanumDrive_Cartesian(0,0,0);
+		checkTimerEvents(); //check for timer-based events.
 	}
+	
+	
+	cerr << "5 ";
 	launch();
 	
-	while(!(getInches() < 14&&IsAutonomous())){
+	while(launching == true){
+		myRobot.Drive(0,0); //feed watchdog
+		displayStats();
+		checkTimerEvents(); //check for timer-based events.
+	}
+	cerr << "6 ";
+	while(getInches() > 30){
 		displayStats();
 		checkTimerEvents();
-		myRobot.MecanumDrive_Cartesian(.4, 0, 0);
+		myRobot.MecanumDrive_Cartesian(-.4, 0, 0);
 	}
-	myRobot.MecanumDrive_Cartesian(0, 0, 0);
+	myRobot.Drive(0,0);
+	cerr << "autoComplete ";
+
 //	myRobot.SetInvertedMotor(RobotDrive::kFrontRightMotor, false);
 //	myRobot.SetInvertedMotor(RobotDrive::kRearRightMotor, false);
 
 */
+
+	/////////////////////////UNCOMMENT FOR LOW GOAL AUTO MODE/////////////////////
+	cerr << "beginAuto ";
+	displayStats();
+	rollerValve1.Set(false);
+	rollerValve2.Set(true);
+	
+	roller.SetSpeed(-1);
+	
+	autoTimer.Reset();
+	autoTimer.Start();
+		
+	while(!autoTimer.HasPeriodPassed(4.0)){
+		myRobot.Drive(0,0); //feed watchdog
+		displayStats();
+		checkTimerEvents(); //check for timer-based events.
+	}
+	
+	roller.SetSpeed(0);
+	
+	autoTimer.Reset();
+	autoTimer.Start();
+	
+	while(!autoTimer.HasPeriodPassed(3.0)){
+		
+		myRobot.MecanumDrive_Cartesian(.7, 0, 0);
+		displayStats();
+		checkTimerEvents();
+	}
+	
+	while(!autoTimer.HasPeriodPassed(1.0)){
+		
+		myRobot.MecanumDrive_Cartesian(.4, 0, 0);
+		displayStats();
+		checkTimerEvents();
+	}
+	
+	myRobot.Drive(0,0);
+	
+	roller.SetSpeed(1);
+	
+	
+	
+	
 }
 /**
  * Periodic code for autonomous mode should go here.
@@ -363,6 +508,8 @@ void RobotDemo::AutonomousPeriodic() {
 	displayStats();
 	/////////////
 	
+	//Feed watchdog
+	myRobot.SetLeftRightMotorOutputs(0,0);
 	
 
 	
@@ -389,21 +536,31 @@ void RobotDemo::TeleopPeriodic() {
 	//float magnitude=stick1.GetX();
 	//float direction= stick1.GetY();
 	//The following commented-out lines are for holonomic drive.
-	float magnitude=stick1.GetY();
-	float direction=-stick1.GetX();
-	float rotation= stick2.GetX();
-
 	
+	float magnitude=0;
+	float direction=0;
+	float rotation=0;
 	
-	
-	if(rollerLiftButton.Get()){
-		rollerValve1.Set(true);
-		rollerValve2.Set(false);
+	if(phoneToggle==true){
+		magnitude=stick4.GetY();
+		direction=-stick4.GetX();
+		rotation= stick4.GetTwist();
+	}else{
+		magnitude=stick1.GetY();
+		direction=-stick1.GetX();
+		 rotation= stick2.GetX();
 	}
 	
-	if(rollerLowerButton.Get()){
+	
+	
+	if(rollerLiftButton.Get()||phoneRollerLiftButton.Get()){
 		rollerValve1.Set(false);
 		rollerValve2.Set(true);
+	}
+	
+	if(rollerLowerButton.Get()||phoneRollerLowerButton.Get()){
+		rollerValve1.Set(true);
+		rollerValve2.Set(false);
 	}
 	
 	if(compressorStartButton.Get()){
@@ -416,16 +573,16 @@ void RobotDemo::TeleopPeriodic() {
 	}
 	
 	
-	if(rollerForwardButton.Get()){
-		roller.SetSpeed(.5); //speeds max out at 1.
-	}else if(rollerBackwardButton.Get()){
-		roller.SetSpeed(-.5);
+	if(rollerForwardButton.Get()||phoneRollerForwardButton.Get()){
+		roller.SetSpeed(1); //speeds max out at 1.
+	}else if(rollerBackwardButton.Get()||phoneRollerBackwardButton.Get()){
+		roller.SetSpeed(-1);
 	}else{
 		roller.SetSpeed(0);
 	}
 
 
-	if(primeButton.Get()){
+	if(primeButton.Get()||phonePrimeButton.Get()){
 		primeLauncher();
 	}
 	
@@ -433,24 +590,34 @@ void RobotDemo::TeleopPeriodic() {
 		launcher.SetSpeed(0);
 		priming = false;
 	}
+	
+	if(spasmButton.Get()){
+		knockBallIntoLauncher();
+	}
+	
 	myRobot.MecanumDrive_Cartesian(deadzone(magnitude), deadzone(direction), deadzone(rotation));
 
 
 	
 	
 	//////Manual Launch//////////
-	if(launchButton.Get()==1){
+	if(launchButton.Get()==1||phoneLaunchButton.Get()==1){
 		launch();
 	}
 	//////Auto Launch/////////
 	if(autoLaunchButton.Get()==1){
 		autoLaunch();
 	}
+	
+	if(phoneControlOnButton.Get()){
+		phoneToggle=true;
+	}
+	if(phoneControlOffButton.Get()){
+		phoneToggle=false;
+	}
 		
 	///CHECK FOR EXTERNAL TIMER EVENTS
 	checkTimerEvents();
-	
-	
 }
 
 /**
@@ -471,14 +638,17 @@ void RobotDemo::TestInit() {
  */
 void RobotDemo::TestPeriodic() {
 
-	
+	if(compressorStartButton.Get()){
+		compressor.Set(Relay::kOn);
+		compressorOn=true;
+	}
+	if(compressorStopButton.Get()){
+		compressor.Set(Relay::kOff);
+		compressorOn=false;
+	}
 	displayStats();
-	
+	checkTimerEvents();	
 }
-
-
-
 };
 
 START_ROBOT_CLASS(RobotDemo);
-
